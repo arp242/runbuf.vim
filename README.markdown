@@ -6,38 +6,50 @@ cumbersome. After running `:Runbuf psql dbname` you can write your queries and
 send it to `psql` with `<C-s>`. This will load the results in a split and keeps
 the query you've written.
 
-I then realized that this will actually work well for `python` or any other CLI
-that accepts stdin as well, so I renamed it from `sql.vim` to `runbuf.vim` :-)
+I realized that this will also work well for `python` or other shells that
+accept stdin, so I renamed it from `sql.vim` to `runbuf.vim` :-) It's a pretty
+simple plugin, but sped up my PostgreSQL testing workflow by quite a bit.
 
----
+Usage
+-----
 
 Start it with `:Runbuf <cmd>`, for example `:Runbuf psql mydb` or `:Runbuf
-python`. This will always edit the same file, which is useful since Vim's undo
-history will give you an edit history on this. The file directory is determined
-with `g:runbuf_dir`, and the filename's extension based on the first word in
-the comnad from the `g:runbuf_extensions` dict.
+python`. This will load a file in `~/.cache/runbuf`, which is the same file for
+every command. This is useful since Vim's undo history will give you a kind of
+edit history.
 
-Then hit `<C-s>` in normal or insert mode to run the command and get the output.
+The file directory is determined with `g:runbuf_dir`, and the filename's
+extension based on the first word in the command from the `g:runbuf_extensions`
+dict.
 
-runbuf.vim is pretty agnostic, it sends the input buffer to a command and
-displays the output; some examples:
+If the command contains a `%s` then this will be replaced with the path of the
+input file; for most things you don't need this as many interpreters will read
+from stdin, but some compilers (e.g. `go run`) don't.
+
+Hit `<C-s>` in normal or insert mode to run the command and get the output.
+
+Some examples:
 
     :Runbuf psql dbname
-    :Runbuf psql -h somehost.example.com dbname
-    :Runbuf psql --expanded dbname
-    :Runbuf sqlite3 file.sqlite
     :Runbuf python
+    :Runbuf sqlite3 file.sqlite
 
----
+    " Any shell command will do, so you can pass output options and the like.
+    :Runbuf psql --expanded -h somehost.example.com dbname
 
-Options with their defaults:
+Settings
+--------
+
+All settings with their defaults values.
 
     " Key to map for running to command, mapped in normal and insert mode.
     let g:runbuf_map = '<C-s>'
 
     " Shortcuts for commands; useful if you have longer connection strings or
-    the like.
-    let g:runbuf_commands = #{}
+    " the like.
+    let g:runbuf_commands = #{
+        \ go: 'go run %s',
+    \ }
 
     " List of commands to run when creating the output window.
     let g:runbuf_output = ['below new', 'resize 15', 'setl nowrap']
@@ -52,6 +64,53 @@ Options with their defaults:
         \ psql:    'sql',
         \ sqlite3: 'sql',
         \ mysql:   'sql',
+        \ go:      'go',
         \ python:  'py',
         \ ruby:    'rb'
     \ }
+
+    " Resize output buffer.
+    let g:runbuf_resize = get(g:, 'runbuf_resize', 1)
+
+Protips
+-------
+
+If you're using PostgreSQL performance testing on indexes and the like then you
+can use something like:
+
+    begin;
+        drop index maybe_bad;
+        create index maybe_better [..];
+
+        explain analyze
+            select [..]
+    rollback;
+
+This won't work for MariaDB (as for as I know), but PostgreSQL is cool with it,
+and it's an easy way to test out some stuff while keeping your base tables
+intact.
+
+---
+
+You can use `+Runbuf` to start things a bit faster; for example:
+
+    $ vim '+Runbuf gc'
+
+Where `gc` is a shortcut to connect to my PostgreSQL database defined in
+`g:runbuf_commands`.
+
+---
+
+You can configure `psql` from `~/.psqlrc` this is what I have:
+
+    \set QUIET
+    \set HISTSIZE -1
+    \set PROMPT1 '(%:ROW_COUNT:)%R%# '
+    \set PROMPT2 '%R%# '
+    \pset linestyle unicode
+    \pset footer off
+    \pset null 'NULL'
+    \timing on
+
+There are also flags for `psql` to set this. See `psql(1)` for docs on all of
+this.
