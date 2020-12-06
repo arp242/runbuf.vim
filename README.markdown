@@ -1,4 +1,8 @@
-runbuf.vim makes it easy to run shell commands and display the output.
+runbuf.vim makes it easy to run the contents of a buffer in psql, python, bash,
+etc. and display the output.
+
+This [little demo video](http://tmp.arp242.net/runbuf-demo.mp4) is probably
+clearer than any text description.
 
 The original use case I wrote this for is for running SQL queries with
 PostgreSQL; you can use `\e` in `psql` to load `$EDITOR`, but it's a bit
@@ -9,8 +13,6 @@ the query you've written.
 I realized that this will also work well for `python` or other shells that
 accept stdin, so I renamed it from `sql.vim` to `runbuf.vim` :-) It's a pretty
 simple plugin, but sped up my PostgreSQL testing workflow by quite a bit.
-
-[Little demo video](http://tmp.arp242.net/runbuf-demo.mp4)
 
 Usage
 -----
@@ -118,9 +120,9 @@ Some PostgreSQL specific-things:
               select [..]
       rollback;
 
-This won't work for MariaDB (as for as I know), but PostgreSQL is cool with it,
-and it's an easy way to test out some stuff while keeping your base tables
-intact.
+  This won't work for MariaDB (as for as I know), but PostgreSQL is cool with
+  it, and it's an easy way to test out some stuff while keeping your base tables
+  intact.
 
 - Since stuff is run through the `psql` CLI, special commands such as `\x` and
   `\d` will work just fine. You can also configure `psql` from `~/.psqlrc` this
