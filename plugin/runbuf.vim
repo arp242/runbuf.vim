@@ -42,7 +42,8 @@ fun! s:runbuf(cmd) abort
 		return
 	endif
 
-	exe ':e ' .. fnameescape(s:file(cmd))
+	exe 'edit ' .. fnameescape(s:file(cmd))
+	set ft+=.runbuf
 	let b:cmd = cmd
 	let b:output = printf('runbuf-output-%s-%s', fnamemodify(bufname(''), ':e'), localtime())
 
@@ -87,10 +88,17 @@ fun! s:send() abort
 	silent call deletebufline(b, 1, '$')
 	silent call setbufline(b, 1, out)
 	silent call setbufvar(b, '&modifiable', '0')
+	silent call win_execute(win_getid(b), 'normal! gg')
 
 	" TODO: also support width?
 	if g:runbuf_resize
-		exe b .. 'resize ' .. min([&lines - line('$'), getbufinfo(b)[0]['linecount']])
+		let ui_chrome = &cmdheight + 2
+		if &showtabline is 2 || (&showtabline is 1 && len(gettabinfo()) > 1)
+			let ui_chrome += 1
+		endif
+		exe b .. 'resize ' .. min([
+			\ &lines - line('$') - ui_chrome,
+			\ getbufinfo(b)[0]['linecount']])
 	endif
 
 	if v:shell_error
