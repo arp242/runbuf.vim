@@ -68,8 +68,9 @@ fun s:create_output() abort
 	for c in g:runbuf_output
 		exe c
 	endfor
-	silent setl buftype=nofile noswapfile nomodifiable
+	silent setl buftype=nofile noswapfile
 	silent exe 'file ' .. o
+	autocmd WinLeave <buffer> silent later 999999
 	wincmd w
 endfun
 
@@ -84,11 +85,14 @@ fun! s:send() abort
 
 	call s:create_output()
 	let b = bufnr(b:output)
-	silent call setbufvar(b, '&modifiable', '1')
+
+	" Don't ask me why, but undo doesn't work correctly if we don't do undo/redo
+	" here first.
+	call win_execute(win_getid(b), 'undo | redo')
+
 	silent call deletebufline(b, 1, '$')
-	silent call setbufline(b, 1, out)
-	silent call setbufvar(b, '&modifiable', '0')
-	silent call win_execute(win_getid(b), 'normal! gg')
+	call setbufline(b, 1, out)
+	call win_execute(win_getid(b), 'normal! gg')
 
 	" TODO: also support width?
 	if g:runbuf_resize

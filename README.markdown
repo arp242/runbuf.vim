@@ -84,7 +84,7 @@ Protips
 -------
 
 You can scroll the output buffer without leaving the input window with some
-additional keybinds, for example to have `<C-j>` and `<C-k>` scroll by 3 lines:
+additional mappings, for example to have `<C-j>` and `<C-k>` scroll by 3 lines:
 
     augroup my-runbuf
         au!
@@ -95,6 +95,11 @@ additional keybinds, for example to have `<C-j>` and `<C-k>` scroll by 3 lines:
 
 `.runbuf` is appended to the `filetype` of the input buffer, so you can hook in
 other things here as well.
+
+---
+
+Undo works in the output window, in case you want to view the previous output.
+The last output will be restored if you leave the window.
 
 ---
 
